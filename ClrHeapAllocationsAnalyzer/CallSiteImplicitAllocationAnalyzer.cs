@@ -16,6 +16,8 @@ namespace ClrHeapAllocationAnalyzer
 
         public static DiagnosticDescriptor ValueTypeNonOverridenCallRule = new DiagnosticDescriptor("HAA0102", "Non-overridden virtual method call on value type", "Non-overridden virtual method call on a value type adds a boxing or constrained instruction", "Performance", DiagnosticSeverity.Warning, true);
 
+        public static DiagnosticDescriptor ValueTypeKeyRule = new DiagnosticDescriptor("HAA0103", "Non-equatable value type key will cause boxing", "..", "Performance", DiagnosticSeverity.Error, true);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ParamsParameterRule, ValueTypeNonOverridenCallRule);
 
         protected override SyntaxKind[] Expressions => new[] { SyntaxKind.InvocationExpression };

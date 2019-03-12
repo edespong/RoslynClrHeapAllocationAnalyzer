@@ -96,6 +96,100 @@ attr.HasFlag (FileAttributes.Directory);
             var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression));
 
             Assert.AreEqual(0, info.Allocations.Count);
-          }
+        }
+
+        [TestMethod]
+        public void CallSiteImplicitAllocation_DictionaryWithEnumKeyNoComparer_ReportsAllocation() {
+            var snippet = @"
+using System;
+using System.Collections.Generic;
+
+Dictionary<DayOfWeek, int> foo = new Dictionary<DayOfWeek, int>();
+";
+
+            var analyser = new CallSiteImplicitAllocationAnalyzer();
+            var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression)); // TODO: Wrong SyntaxKind
+
+            Assert.AreEqual(1, info.Allocations.Count);
+        }
+        
+        [TestMethod]
+        public void CallSiteImplicitAllocation_DictionaryWithNonEquatableStructKeyNoComparer_ReportsAllocation() {
+            var snippet = @"
+using System;
+using System.Collections.Generic;
+
+struct MyStruct { }
+
+Dictionary<MyStruct, int> foo = new Dictionary<MyStruct, int>();
+";
+
+            var analyser = new CallSiteImplicitAllocationAnalyzer();
+            var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression)); // TODO: Wrong SyntaxKind
+
+            Assert.AreEqual(1, info.Allocations.Count);
+        }
+        
+        [TestMethod]
+        public void CallSiteImplicitAllocation_DictionaryWithEquatableStructKey_NoReport() {
+            var snippet = @"
+using System;
+using System.Collections.Generic;
+
+struct MyStruct : IEquatable<MyStruct>
+{
+    public bool Equals(MyStruct other) { return false; }
+}
+
+Dictionary<MyStruct, int> foo = new Dictionary<MyStruct, int>();
+";
+
+            var analyser = new CallSiteImplicitAllocationAnalyzer();
+            var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression)); // TODO: Wrong SyntaxKind
+
+            Assert.AreEqual(0, info.Allocations.Count);
+        }
+
+        [TestMethod]
+        public void CallSiteImplicitAllocation_DictionaryWithEnumKeyWithComparer_NoReport() {
+            var snippet = @"
+using System;
+using System.Collections.Generic;
+
+public class DayOfWeekComparer : IEqualityComparer<DayOfWeek>
+{
+    public bool Equals(DayOfWeek x, DayOfWeek y) { return false; }
+}
+
+Dictionary<DayOfWeek, int> foo = new Dictionary<DayOfWeek, int>(new DayOfWeekComparer());
+";
+
+            var analyser = new CallSiteImplicitAllocationAnalyzer();
+            var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression)); // TODO: Wrong SyntaxKind
+
+            Assert.AreEqual(0, info.Allocations.Count);
+        }
+
+        [TestMethod]
+        public void CallSiteImplicitAllocation_DictionaryWithStructKeyWithComparer_NoReport() {
+            var snippet = @"
+using System;
+using System.Collections.Generic;
+
+struct MyStruct : IEquatable<MyStruct> { }
+
+public class MyStructComparer : IEqualityComparer<MyStruct>
+{
+    public bool Equals(MyStruct x, MyStruct y) { return false; }
+}
+
+Dictionary<MyStruct, int> foo = new Dictionary<MyStruct, int>(new MyStructComparer());
+";
+
+            var analyser = new CallSiteImplicitAllocationAnalyzer();
+            var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.InvocationExpression)); // TODO: Wrong SyntaxKind
+
+            Assert.AreEqual(0, info.Allocations.Count);
+        }
     }
 }
