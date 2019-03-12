@@ -14,7 +14,7 @@ namespace ClrHeapAllocationAnalyzer.Test
                 @"using System;
                 using Microsoft.Diagnostics;
                 
-                [PerformanceCritical]
+                [PerformanceSensitive]
                 public void CreateString1() {
                     string str = new string('a', 5);
                 }
@@ -36,12 +36,12 @@ namespace ClrHeapAllocationAnalyzer.Test
                 @"using System;
                 using Microsoft.Diagnostics;
                 
-                [PerformanceCritical]
+                [PerformanceSensitive]
                 public void CreateString1() {
                     string str = new string('a', 5);
                 }
                 
-                [PerformanceCritical]
+                [PerformanceSensitive]
                 public void CreateString2() {
                     string str = new string('a', 5);
                 }";

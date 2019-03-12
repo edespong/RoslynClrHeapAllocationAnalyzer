@@ -23,7 +23,7 @@ namespace ClrHeapAllocationAnalyzer
         private static bool IsHotPathAttribute(AttributeData attribute)
         {
             return attribute.AttributeClass.ContainingNamespace.ToString() == "Microsoft.Diagnostics" &&
-                attribute.AttributeClass.Name == "PerformanceCriticalAttribute";
+                attribute.AttributeClass.Name == "PerformanceSensitiveAttribute";
         }
 
         /// <summary>

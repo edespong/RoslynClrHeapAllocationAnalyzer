@@ -7,7 +7,7 @@ namespace Microsoft.Diagnostics
     /// analyzed for heap allocations.
     /// </summary>
     [AttributeUsage(AttributeTargets.Constructor | AttributeTargets.Method | AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = true, Inherited = false)]
-    public class PerformanceCriticalAttribute : Attribute
+    public class PerformanceSensitiveAttribute : Attribute
     {
     }
 }
