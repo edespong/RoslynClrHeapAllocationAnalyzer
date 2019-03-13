@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp;
+﻿using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Immutable;
 
@@ -26,7 +27,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var analyser = new ExplicitAllocationAnalyzer();
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.ObjectInitializerExpression));
             Assert.AreEqual(1, info.Allocations.Count);
-            AssertEx.ContainsDiagnostic(info.Allocations, id: ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 6);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.NewObjectRule.Id, line: 6);
         }
 
         [TestMethod]
@@ -49,8 +50,8 @@ namespace ClrHeapAllocationAnalyzer.Test
             var analyser = new ExplicitAllocationAnalyzer();
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.ObjectInitializerExpression));
             Assert.AreEqual(2, info.Allocations.Count);
-            AssertEx.ContainsDiagnostic(info.Allocations, id: ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 6);
-            AssertEx.ContainsDiagnostic(info.Allocations, id: ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 11);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.NewObjectRule.Id, line: 6);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.NewObjectRule.Id, line: 11);
         }
     }
 }

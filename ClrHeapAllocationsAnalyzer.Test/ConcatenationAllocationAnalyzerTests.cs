@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp;
+using ClrHeapAllocationAnalyzer.Common;
 
 namespace ClrHeapAllocationAnalyzer.Test
 {
@@ -16,9 +17,9 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info0 = ProcessCode(analyser, snippet0, ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression));
             var info1 = ProcessCode(analyser, snippet1, ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression));
 
-            Assert.AreEqual(0, info0.Allocations.Count(d => d.Id == ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule.Id));
-            Assert.AreEqual(1, info1.Allocations.Count(d => d.Id == ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule.Id));
-            AssertEx.ContainsDiagnostic(info1.Allocations, id: ConcatenationAllocationAnalyzer.StringConcatenationAllocationRule.Id, line: 1, character: 13);
+            Assert.AreEqual(0, info0.Allocations.Count(d => d.Id == AllocationRules.StringConcatenationAllocationRule.Id));
+            Assert.AreEqual(1, info1.Allocations.Count(d => d.Id == AllocationRules.StringConcatenationAllocationRule.Id));
+            AssertEx.ContainsDiagnostic(info1.Allocations, id: AllocationRules.StringConcatenationAllocationRule.Id, line: 1, character: 13);
         }
 
         [TestMethod]
@@ -34,7 +35,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var analyser = new ConcatenationAllocationAnalyzer();
             foreach (var snippet in snippets) {
                 var info = ProcessCode(analyser, snippet, ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression));
-                Assert.AreEqual(0, info.Allocations.Count(x => x.Id == ConcatenationAllocationAnalyzer.ValueTypeToReferenceTypeInAStringConcatenationRule.Id));
+                Assert.AreEqual(0, info.Allocations.Count(x => x.Id == AllocationRules.ValueTypeToReferenceTypeInAStringConcatenationRule.Id));
             }
         }
         

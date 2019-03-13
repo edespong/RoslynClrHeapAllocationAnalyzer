@@ -192,6 +192,10 @@
       <Project>{202C0C68-65A5-458C-A0B8-4623465ED579}</Project>
       <Name>ClrHeapAllocationAnalyzer.Annotations</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ClrHeapAllocationAnalyzer.Common\ClrHeapAllocationAnalyzer.Common.csproj">
+      <Project>{58FCF864-8BF0-48B6-9DA1-07FED3D9C36A}</Project>
+      <Name>ClrHeapAllocationAnalyzer.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ClrHeapAllocationsAnalyzer\ClrHeapAllocationAnalyzer.csproj">
       <Project>{eaf46154-6613-4cd6-be70-9015ff94f9cf}</Project>
       <Name>ClrHeapAllocationAnalyzer</Name>

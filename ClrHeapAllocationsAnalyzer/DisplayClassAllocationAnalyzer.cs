@@ -1,60 +1,110 @@
-﻿namespace ClrHeapAllocationAnalyzer
-{
-    using System;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using System.Threading;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
+﻿using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
+using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
+namespace ClrHeapAllocationAnalyzer
+{
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class DisplayClassAllocationAnalyzer : AllocationAnalyzer
     {
-        public static DiagnosticDescriptor ClosureDriverRule = new DiagnosticDescriptor("HAA0301", "Closure Allocation Source", "Heap allocation of closure Captures: {0}", "Performance", DiagnosticSeverity.Warning, true);
-
-        public static DiagnosticDescriptor ClosureCaptureRule = new DiagnosticDescriptor("HAA0302", "Display class allocation to capture closure", "The compiler will emit a class that will hold this as a field to allow capturing of this closure", "Performance", DiagnosticSeverity.Warning, true);
-
-        public static DiagnosticDescriptor LambaOrAnonymousMethodInGenericMethodRule = new DiagnosticDescriptor("HAA0303", "Lambda or anonymous method in a generic method allocates a delegate instance", "Considering moving this out of the generic method", "Performance", DiagnosticSeverity.Warning, true);
-        
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(ClosureCaptureRule, ClosureDriverRule, LambaOrAnonymousMethodInGenericMethodRule);
-
         protected override SyntaxKind[] Expressions => new[] { SyntaxKind.ParenthesizedLambdaExpression, SyntaxKind.SimpleLambdaExpression, SyntaxKind.AnonymousMethodExpression };
 
         private static readonly object[] EmptyMessageArgs = { };
 
-        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(
+                AllocationRules.GetDescriptor(AllocationRules.ClosureCaptureRule.Id),
+                AllocationRules.GetDescriptor(AllocationRules.ClosureDriverRule.Id),
+                AllocationRules.GetDescriptor(AllocationRules.LambaOrAnonymousMethodInGenericMethodRule.Id)
+            );
+
+        protected override void AnalyzeNode(SyntaxNodeAnalysisContext context, EnabledRules rules)
         {
             var node = context.Node;
             var semanticModel = context.SemanticModel;
             var cancellationToken = context.CancellationToken;
             Action<Diagnostic> reportDiagnostic = context.ReportDiagnostic;
 
+            bool genericRuleEnabled = rules.TryGet(AllocationRules.LambaOrAnonymousMethodInGenericMethodRule.Id, out DiagnosticDescriptor genericRule);
+            bool driverRuleEnabled = rules.TryGet(AllocationRules.ClosureDriverRule.Id, out DiagnosticDescriptor driverRule);
+            bool captureRuleEnabled = rules.TryGet(AllocationRules.ClosureCaptureRule.Id, out DiagnosticDescriptor captureRule);
+
+            SyntaxNode genericCheckNode = null;
+            Location location = null;
+            DataFlowAnalysis flowAnalysis = null;
+
             var anonExpr = node as AnonymousMethodExpressionSyntax;
             if (anonExpr?.Block?.ChildNodes() != null && anonExpr.Block.ChildNodes().Any())
             {
-                GenericMethodCheck(semanticModel, node, anonExpr.DelegateKeyword.GetLocation(), reportDiagnostic, cancellationToken);
-                ClosureCaptureDataFlowAnalysis(semanticModel.AnalyzeDataFlow(anonExpr.Block.ChildNodes().First(), anonExpr.Block.ChildNodes().Last()), reportDiagnostic, anonExpr.DelegateKeyword.GetLocation());
-                return;
+                if (genericRuleEnabled)
+                {
+                    genericCheckNode = node;
+                    location = anonExpr.DelegateKeyword.GetLocation();
+                }
+
+                if (captureRuleEnabled || driverRuleEnabled)
+                {
+                    flowAnalysis = semanticModel.AnalyzeDataFlow(anonExpr.Block.ChildNodes().First(), anonExpr.Block.ChildNodes().Last());
+                    location = anonExpr.DelegateKeyword.GetLocation();
+                }
             }
 
             if (node is SimpleLambdaExpressionSyntax lambdaExpr)
             {
-                GenericMethodCheck(semanticModel, node, lambdaExpr.ArrowToken.GetLocation(), reportDiagnostic, cancellationToken);
-                ClosureCaptureDataFlowAnalysis(semanticModel.AnalyzeDataFlow(lambdaExpr), reportDiagnostic, lambdaExpr.ArrowToken.GetLocation());
-                return;
+                if (genericRuleEnabled)
+                {
+                    genericCheckNode = node;
+                    location = lambdaExpr.ArrowToken.GetLocation();
+                }
+
+                if (captureRuleEnabled || driverRuleEnabled)
+                {
+                    flowAnalysis = semanticModel.AnalyzeDataFlow(lambdaExpr);
+                    location = lambdaExpr.ArrowToken.GetLocation();
+                }
             }
 
             if (node is ParenthesizedLambdaExpressionSyntax parenLambdaExpr)
             {
-                GenericMethodCheck(semanticModel, node, parenLambdaExpr.ArrowToken.GetLocation(), reportDiagnostic, cancellationToken);
-                ClosureCaptureDataFlowAnalysis(semanticModel.AnalyzeDataFlow(parenLambdaExpr), reportDiagnostic, parenLambdaExpr.ArrowToken.GetLocation());
-                return;
+                if (genericRuleEnabled)
+                {
+                    genericCheckNode = node;
+                    location = parenLambdaExpr.ArrowToken.GetLocation();
+                }
+
+                if (captureRuleEnabled || driverRuleEnabled)
+                {
+                    flowAnalysis = semanticModel.AnalyzeDataFlow(parenLambdaExpr);
+                    location = parenLambdaExpr.ArrowToken.GetLocation();
+                }
+            }
+
+            if (genericCheckNode != null)
+            {
+                GenericMethodCheck(genericRule, semanticModel, genericCheckNode, location, reportDiagnostic, cancellationToken);
+            }
+
+            if (captureRuleEnabled)
+            {
+                ClosureCaptureDataFlowAnalysis(captureRule, flowAnalysis, reportDiagnostic, location);
+            }
+
+            if (driverRuleEnabled)
+            {
+                if (flowAnalysis?.Captured.Length > 0)
+                {
+                    reportDiagnostic(Diagnostic.Create(driverRule, location, new[] { string.Join(",", flowAnalysis.Captured.Select(x => x.Name)) }));
+                }
             }
         }
-        
-        private static void ClosureCaptureDataFlowAnalysis(DataFlowAnalysis flow, Action<Diagnostic> reportDiagnostic, Location location)
+
+        private static void ClosureCaptureDataFlowAnalysis(DiagnosticDescriptor captureRule, DataFlowAnalysis flow, Action<Diagnostic> reportDiagnostic, Location location)
         {
             if (flow?.Captured.Length <= 0)
             {
@@ -66,23 +116,24 @@
                 if (capture.Name != null && capture.Locations != null)
                 {
                     foreach (var l in capture.Locations)
-                     {
-                        reportDiagnostic(Diagnostic.Create(ClosureCaptureRule, l, EmptyMessageArgs));
+                    {
+                        if (captureRule.IsEnabledByDefault)
+                        {
+                            reportDiagnostic(Diagnostic.Create(captureRule, l, EmptyMessageArgs));
+                        }
                     }
                 }
             }
-
-            reportDiagnostic(Diagnostic.Create(ClosureDriverRule, location, new[] { string.Join(",", flow.Captured.Select(x => x.Name)) }));
         }
 
-        private static void GenericMethodCheck(SemanticModel semanticModel, SyntaxNode node, Location location, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        private static void GenericMethodCheck(DiagnosticDescriptor rule, SemanticModel semanticModel, SyntaxNode node, Location location, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol != null)
             {
-                var containingSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol.ContainingSymbol as IMethodSymbol;
+                IMethodSymbol containingSymbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol.ContainingSymbol as IMethodSymbol;
                 if (containingSymbol != null && containingSymbol.Arity > 0)
                 {
-                    reportDiagnostic(Diagnostic.Create(LambaOrAnonymousMethodInGenericMethodRule, location, EmptyMessageArgs));
+                    reportDiagnostic(Diagnostic.Create(rule, location, EmptyMessageArgs));
                 }
             }
         }

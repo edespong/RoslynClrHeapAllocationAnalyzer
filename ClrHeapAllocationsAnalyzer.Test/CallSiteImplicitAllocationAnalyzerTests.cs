@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using ClrHeapAllocationAnalyzer.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -34,13 +35,13 @@ public void ParamsWithObjects(params object[] args)
 
             Assert.AreEqual(4, info.Allocations.Count);
             // Diagnostic: (3,1): warning HeapAnalyzerImplicitParamsRule: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-            AssertEx.ContainsDiagnostic(info.Allocations, id: CallSiteImplicitAllocationAnalyzer.ParamsParameterRule.Id, line: 3, character: 1);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.ParamsParameterRule.Id, line: 3, character: 1);
             // Diagnostic: (4,1): warning HeapAnalyzerImplicitParamsRule: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-            AssertEx.ContainsDiagnostic(info.Allocations, id: CallSiteImplicitAllocationAnalyzer.ParamsParameterRule.Id, line: 4, character: 1);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.ParamsParameterRule.Id, line: 4, character: 1);
             // Diagnostic: (6,1): warning HeapAnalyzerImplicitParamsRule: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-            AssertEx.ContainsDiagnostic(info.Allocations, id: CallSiteImplicitAllocationAnalyzer.ParamsParameterRule.Id, line: 6, character: 1);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.ParamsParameterRule.Id, line: 6, character: 1);
             // Diagnostic: (9,12): warning HeapAnalyzerImplicitParamsRule: This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter
-            AssertEx.ContainsDiagnostic(info.Allocations, id: CallSiteImplicitAllocationAnalyzer.ParamsParameterRule.Id, line: 9, character: 12);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.ParamsParameterRule.Id, line: 9, character: 12);
         }
 
         [TestMethod]
@@ -70,7 +71,7 @@ struct OverrideToHashCode
 
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (3,14): warning HeapAnalyzerValueTypeNonOverridenCallRule: Non-overriden virtual method call on a value type adds a boxing or constrained instruction
-            AssertEx.ContainsDiagnostic(info.Allocations, id: CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule.Id, line: 3, character: 14);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.ValueTypeNonOverridenCallRule.Id, line: 3, character: 14);
         }
 
         [TestMethod]

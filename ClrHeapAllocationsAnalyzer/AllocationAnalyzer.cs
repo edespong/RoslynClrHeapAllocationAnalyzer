@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis;
+﻿using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Linq;
@@ -9,12 +10,7 @@ namespace ClrHeapAllocationAnalyzer
     {
         protected abstract SyntaxKind[] Expressions { get; }
 
-        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context);
-
-        protected virtual void AnalyzeNode(SyntaxNodeAnalysisContext context, EnabledRules rules)
-        {
-            AnalyzeNode(context);
-        }
+        protected abstract void AnalyzeNode(SyntaxNodeAnalysisContext context, EnabledRules rules);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -33,11 +29,15 @@ namespace ClrHeapAllocationAnalyzer
                 return;
             }
 
-            EnabledRules rules = AllocationRules.GetEnabledRules(SupportedDiagnostics, context);
+            // TODO(erik): Use supportedDiag directly instead?
+            var ids = SupportedDiagnostics.Select(x => x.Id).ToArray();
+            EnabledRules rules = AllocationRules.GetEnabledRules(ids);
             if (!rules.AnyEnabled)
             {
                 return;
             }
+                          
+            rules = HotPathAnalysis.GetEnabledRules(rules.All(), context);
 
             AnalyzeNode(context, rules);
         }

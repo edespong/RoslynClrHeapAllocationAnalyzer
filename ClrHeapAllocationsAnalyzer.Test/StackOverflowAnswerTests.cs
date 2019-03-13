@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using ClrHeapAllocationAnalyzer.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -20,7 +21,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info = ProcessCode(analyser, @script, ImmutableArray.Create(SyntaxKind.ObjectCreationExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ArrayInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.ComplexElementInitializerExpression, SyntaxKind.ObjectInitializerExpression, SyntaxKind.ArrayCreationExpression, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.LetClause));
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (2,34): info HeapAnalyzerExplicitNewObjectRule: Explicit new reference type allocation
-            AssertEx.ContainsDiagnostic(info.Allocations, ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 2, character: 34);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.NewObjectRule.Id, line: 2, character: 34);
         }
 
         [TestMethod]
@@ -33,7 +34,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info = ProcessCode(analyser, @script, ImmutableArray.Create(SyntaxKind.ObjectCreationExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ArrayInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.ComplexElementInitializerExpression, SyntaxKind.ObjectInitializerExpression, SyntaxKind.ArrayCreationExpression, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.LetClause));
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (2,44): info HeapAnalyzerExplicitNewObjectRule: Explicit new reference type allocation
-            AssertEx.ContainsDiagnostic(info.Allocations, ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 2, character: 44);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.NewObjectRule.Id, line: 2, character: 44);
         }
 
         [TestMethod]
@@ -56,7 +57,7 @@ namespace ClrHeapAllocationAnalyzer.Test
                 SyntaxKind.Argument));
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (2,35): warning HeapAnalyzerBoxingRule: Value type to reference type conversion causes boxing at call site (here), and unboxing at the callee-site. Consider using generics if applicable
-            AssertEx.ContainsDiagnostic(info.Allocations, TypeConversionAllocationAnalyzer.ValueTypeToReferenceTypeConversionRule.Id, line: 2, character: 35);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.ValueTypeToReferenceTypeConversionRule.Id, line: 2, character: 35);
         }
 
         [TestMethod]
@@ -70,7 +71,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info = ProcessCode(analyser, @script, ImmutableArray.Create(SyntaxKind.ObjectCreationExpression, SyntaxKind.AnonymousObjectCreationExpression, SyntaxKind.ArrayInitializerExpression, SyntaxKind.CollectionInitializerExpression, SyntaxKind.ComplexElementInitializerExpression, SyntaxKind.ObjectInitializerExpression, SyntaxKind.ArrayCreationExpression, SyntaxKind.ImplicitArrayCreationExpression, SyntaxKind.LetClause));
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (3,25): info HeapAnalyzerExplicitNewObjectRule: Explicit new reference type allocation
-            AssertEx.ContainsDiagnostic(info.Allocations, ExplicitAllocationAnalyzer.NewObjectRule.Id, line: 3, character: 25);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.NewObjectRule.Id, line: 3, character: 25);
         }
 
         [TestMethod]
@@ -83,7 +84,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info = ProcessCode(analyser, @script, ImmutableArray.Create(SyntaxKind.AddExpression, SyntaxKind.AddAssignmentExpression));
             Assert.AreEqual(1, info.Allocations.Count);
             //Diagnostic: (2,53): warning HeapAnalyzerBoxingRule: Value type (char) is being boxed to a reference type for a string concatenation.
-            AssertEx.ContainsDiagnostic(info.Allocations, ConcatenationAllocationAnalyzer.ValueTypeToReferenceTypeInAStringConcatenationRule.Id, line: 2, character: 53);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.ValueTypeToReferenceTypeInAStringConcatenationRule.Id, line: 2, character: 53);
         }
 
         [TestMethod]
@@ -107,9 +108,9 @@ namespace ClrHeapAllocationAnalyzer.Test
                 SyntaxKind.Argument));
             Assert.AreEqual(2, info.Allocations.Count);
             // Diagnostic: (3,30): warning HeapAnalyzerMethodGroupAllocationRule: This will allocate a delegate instance
-            AssertEx.ContainsDiagnostic(info.Allocations, TypeConversionAllocationAnalyzer.MethodGroupAllocationRule.Id, line: 3, character: 30);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.MethodGroupAllocationRule.Id, line: 3, character: 30);
             // Diagnostic: (3,30): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
-            AssertEx.ContainsDiagnostic(info.Allocations, TypeConversionAllocationAnalyzer.DelegateOnStructInstanceRule.Id, line: 3, character: 30);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.DelegateOnStructInstanceRule.Id, line: 3, character: 30);
         }
 
         [TestMethod]
@@ -122,7 +123,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             var info = ProcessCode(analyser, @script, ImmutableArray.Create(SyntaxKind.InvocationExpression));
             Assert.AreEqual(1, info.Allocations.Count);
             // Diagnostic: (2,17): warning HeapAnalyzerValueTypeNonOverridenCallRule: Non-overriden virtual method call on a value type adds a boxing or constrained instruction
-            AssertEx.ContainsDiagnostic(info.Allocations, CallSiteImplicitAllocationAnalyzer.ValueTypeNonOverridenCallRule.Id, line: 2, character: 17);
+            AssertEx.ContainsDiagnostic(info.Allocations, AllocationRules.ValueTypeNonOverridenCallRule.Id, line: 2, character: 17);
         }
     }
 }
