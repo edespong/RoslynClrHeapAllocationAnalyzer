@@ -12,21 +12,20 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace ClrHeapAllocationAnalyzer.Common
 {
     public static partial class AllocationRules
     {
-        private static readonly HashSet<ValueTuple<string, string>> IgnoredAttributes = new HashSet<(string, string)>
-        {
-            ("System.Runtime.CompilerServices", "CompilerGeneratedAttribute"),
-            ("System.CodeDom.Compiler", "GeneratedCodeAttribute")
-        };
-
         private static IHeapAllocationAnalyzerSettings defaultSettings;
 
         private static IHeapAllocationAnalyzerSettings settings;
+
+        private static readonly HashSet<ValueTuple<string, string>> IgnoredAttributes = new HashSet<(string, string)>();
+
+        private static readonly IList<string> IgnoredFilesPatterns = new List<string>();
 
         private static readonly Dictionary<string, AllocationRuleDescription> Descriptions =
             new Dictionary<string, AllocationRuleDescription>();
@@ -37,6 +36,8 @@ namespace ClrHeapAllocationAnalyzer.Common
             {
                 Descriptions.Add(rule.Id, rule);
             }
+
+            HotPathAttributes = new HashSet<(string, string)>();
         }
 
         public static IHeapAllocationAnalyzerSettings Settings
@@ -72,18 +73,23 @@ namespace ClrHeapAllocationAnalyzer.Common
                 if (settings != null)
                 {
                     settings.SettingsChanged += OnSettingsChanged;
+                    LoadSettings();
                 }
             }
         }
 
+        public static HashSet<ValueTuple<string, string>> HotPathAttributes { get; private set; }
+
         public static bool IsIgnoredFile(string filePath)
         {
-            return filePath.EndsWith(".g.cs", StringComparison.OrdinalIgnoreCase);
+            return IgnoredFilesPatterns.Any(pattern =>
+                Microsoft.VisualBasic.CompilerServices.LikeOperator.LikeString(filePath, pattern, Microsoft.VisualBasic.CompareMethod.Text));
         }
 
         public static bool IsIgnoredAttribute(AttributeData attribute)
         {
-            return IgnoredAttributes.Contains((attribute.AttributeClass.ContainingNamespace.ToString(), attribute.AttributeClass.Name));
+            return IgnoredAttributes.Contains(
+                (attribute.AttributeClass.ContainingNamespace.ToString(), attribute.AttributeClass.Name));
         }
 
         public static DiagnosticDescriptor GetDescriptor(string ruleId)
@@ -142,7 +148,15 @@ namespace ClrHeapAllocationAnalyzer.Common
 
         private static void OnSettingsChanged(object sender, EventArgs eventArgs)
         {
+            LoadSettings();
+        }
+
+        private static void LoadSettings()
+        {
             LoadSeverities();
+            LoadIgnoredFilesPatterns(Settings.IgnoredFilesPatterns);
+            LoadIgnoredAttributes(Settings.IgnoredAttributes);
+            LoadHotPathAttributes(Settings.HotPathAttributes);
         }
 
         private static void LoadSeverities()
@@ -155,6 +169,71 @@ namespace ClrHeapAllocationAnalyzer.Common
                 {
                     Descriptions[d.Key] = Descriptions[d.Key].WithSeverity(severity);
                 }
+            }
+        }
+
+        /// <summary>
+        /// Loads attributes for which, if applied to a method, will not cause
+        /// analysis.
+        /// </summary>
+        /// <param name="ignoredAttributesStr">
+        /// E.g. "System.CompilerServices.CompilerGeneratedAttribute, System.GeneratedCodeAttribute"
+        /// </param>
+        private static void LoadIgnoredAttributes(string ignoredAttributesStr)
+        {
+            LoadAttributes(ignoredAttributesStr, IgnoredAttributes);
+        }
+
+        /// <summary>
+        /// Loads attributes that describes that the given code is performance
+        /// critical.
+        /// </summary>
+        /// <param name="hotPathAttributesStr">
+        /// E.g. "System.Performance.HotPath, MyCompany.Application.PerformanceCritical"
+        /// </param>
+        private static void LoadHotPathAttributes(string hotPathAttributesStr)
+        {
+            LoadAttributes(hotPathAttributesStr, HotPathAttributes);
+        }
+
+        /// <summary>
+        /// Extracts attribute namespace and class name from a comma separated
+        /// string and puts it into the given hashset.
+        /// analysis.
+        /// </summary>
+        /// <param name="attributesString">
+        /// E.g. "System.CompilerServices.CompilerGeneratedAttribute, System.GeneratedCodeAttribute"
+        /// </param>
+        private static void LoadAttributes(string attributesString, HashSet<ValueTuple<string, string>> attributeClasses)
+        {
+            attributeClasses.Clear();
+
+            // E.g. { "System.CompilerServices.CompilerGeneratedAttribute", "System.GeneratedCodeAttribute" }
+            string[] attributeStrings = attributesString?.Split(new[] { ',' }) ?? new string[] { };
+            foreach (var attributeName in attributeStrings)
+            {
+                int index = attributeName.LastIndexOf(".", StringComparison.InvariantCultureIgnoreCase);
+                if (index == -1)
+                {
+                    continue;
+                }
+
+                // E.g. "System.CompilerServices"
+                string @namespace = attributeName.Substring(0, index).Trim();
+                // E.g. "CompilerGeneratedAttribute"
+                string @class = attributeName.Substring(index + 1).Trim();
+
+                attributeClasses.Add((@namespace, @class));
+            }
+        }
+
+        private static void LoadIgnoredFilesPatterns(string ignoredFilesPatternsStr)
+        {
+            IgnoredFilesPatterns.Clear();
+            string[] patterns = ignoredFilesPatternsStr?.Split(',') ?? new string[] { };
+            foreach (var pattern in patterns)
+            {
+                IgnoredFilesPatterns.Add(pattern.Trim());
             }
         }
     }

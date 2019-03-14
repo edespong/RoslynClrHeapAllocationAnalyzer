@@ -17,7 +17,6 @@ using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.Diagnostics;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ClrHeapAllocationAnalyzer.Common;
 
@@ -32,8 +31,7 @@ namespace ClrHeapAllocationAnalyzer.Test
         }
 
         protected static readonly List<MetadataReference> references = new List<MetadataReference>
-            {
-                MetadataReference.CreateFromFile(typeof(PerformanceSensitiveAttribute).Assembly.Location),
+            {// TODO: Get PerformanceSensitiveAttribute from where?
                 MetadataReference.CreateFromFile(typeof(int).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Console).Assembly.Location),
                 MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location),

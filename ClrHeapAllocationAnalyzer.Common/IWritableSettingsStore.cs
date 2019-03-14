@@ -26,9 +26,11 @@ namespace ClrHeapAllocationAnalyzer.Common
     {
         bool GetBoolean(string collectionPath, string propertyName, bool defaultValue);
         int GetInt32(string collectionPath, string propertyName, int defaultValue);
+        string GetString(string collectionPath, string propertyName, string defaultValue);
         bool CollectionExists(string collectionPath);
         void SetBoolean(string collectionPath, string propertyName, bool value);
         void SetInt32(string collectionPath, string propertyName, int value);
+        void SetString(string collectionPath, string propertyName, string value);
         void CreateCollection(string collectionPath);
     }
 }

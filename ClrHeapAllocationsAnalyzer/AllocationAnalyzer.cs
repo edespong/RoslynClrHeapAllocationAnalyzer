@@ -36,11 +36,11 @@ namespace ClrHeapAllocationAnalyzer
                 return;
             }
 
-            if (context.ContainingSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute))
+            if (HasIgnoreAttribute(context))
             {
                 return;
             }
-            
+
             var ids = SupportedDiagnostics.Select(x => x.Id).ToArray();
             EnabledRules rules = AllocationRules.GetEnabledRules(ids);
             if (!rules.AnyEnabled)
@@ -49,8 +49,18 @@ namespace ClrHeapAllocationAnalyzer
             }
                           
             rules = HotPathAnalysis.GetEnabledRules(rules.All(), context);
+            if (!rules.AnyEnabled)
+            {
+                return;
+            }
 
             AnalyzeNode(context, rules);
+        }
+
+        private static bool HasIgnoreAttribute(SyntaxNodeAnalysisContext context)
+        {
+            return context.ContainingSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute) ||
+                context.ContainingSymbol.ContainingType.GetAttributes().Any(AllocationRules.IsIgnoredAttribute);
         }
     }
 }

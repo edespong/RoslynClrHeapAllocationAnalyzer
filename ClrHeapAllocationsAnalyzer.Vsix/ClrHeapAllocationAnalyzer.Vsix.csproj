@@ -88,7 +88,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ClrHeapAllocationAnalyzer.Common\ClrHeapAllocationAnalyzer.Common.csproj">
-      <Project>{82798FE9-7E3D-461E-A0CE-D166D00C35DF}</Project>
+      <Project>{58FCF864-8BF0-48B6-9DA1-07FED3D9C36A}</Project>
       <Name>ClrHeapAllocationAnalyzer.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\ClrHeapAllocationsAnalyzer\ClrHeapAllocationAnalyzer.csproj">
@@ -97,6 +97,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GeneralOptionsPage.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="HeapAllocationAnalyzerOptionsPackage.cs" />
     <Compile Include="SettingsStoreWrapper.cs" />
   </ItemGroup>

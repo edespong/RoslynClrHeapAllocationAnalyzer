@@ -7,6 +7,7 @@ This project contains a number of changes and difference in functionality
 compared to the original project, including:
 * The ability to mark methods with attributes so that only the marked methods
   are analyzed for allocations ("hot path analysis").
+* Settings to control file patterns and attributes for analysis exclusion
 * The ability to change the severities of the different rules
 * Removal of the HeapAllocationAnalyzerEventSource
 

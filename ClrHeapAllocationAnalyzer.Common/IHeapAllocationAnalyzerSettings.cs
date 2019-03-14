@@ -21,6 +21,14 @@ namespace ClrHeapAllocationAnalyzer.Common
 
         bool Enabled { get; set; }
 
+        string IgnoredAttributes { get; set; }
+
+        string IgnoredFilesPatterns { get; set; }
+
+        bool OnlyReportOnHotPath { get; set; }
+
+        string HotPathAttributes { get; set; }
+
         DiagnosticSeverity GetSeverity(string ruleId, DiagnosticSeverity defaultValue);
 
         DiagnosticSeverity GetSeverity(AllocationRuleDescription defaultDescription);

@@ -34,6 +34,11 @@ namespace ClrHeapAllocationAnalyzer.Vsix
             return settingsStore.GetInt32(collectionPath, propertyName, defaultValue);
         }
 
+        public string GetString(string collectionPath, string propertyName, string defaultValue)
+        {
+            return settingsStore.GetString(collectionPath, propertyName, defaultValue);
+        }
+
         public bool CollectionExists(string collectionPath)
         {
             return settingsStore.CollectionExists(collectionPath);
@@ -47,6 +52,11 @@ namespace ClrHeapAllocationAnalyzer.Vsix
         public void SetInt32(string collectionPath, string propertyName, int value)
         {
             settingsStore.SetInt32(collectionPath, propertyName, value);
+        }
+
+        public void SetString(string collectionPath, string propertyName, string defaultValue)
+        {
+            settingsStore.SetString(collectionPath, propertyName, defaultValue);
         }
 
         public void CreateCollection(string collectionPath)

@@ -18,6 +18,7 @@ namespace ClrHeapAllocationAnalyzer.Common
     {
         private readonly IDictionary<string, bool> boolValues = new Dictionary<string, bool>();
         private readonly IDictionary<string, int> intValues = new Dictionary<string, int>();
+        private readonly IDictionary<string, string> stringValues = new Dictionary<string, string>();
 
         public bool GetBoolean(string collectionPath, string propertyName, bool defaultValue)
         {
@@ -27,6 +28,11 @@ namespace ClrHeapAllocationAnalyzer.Common
         public int GetInt32(string collectionPath, string propertyName, int defaultValue)
         {
             return intValues.ContainsKey(propertyName) ? intValues[propertyName] : defaultValue;
+        }
+
+        public string GetString(string collectionPath, string propertyName, string defaultValue)
+        {
+            return stringValues.ContainsKey(propertyName) ? stringValues[propertyName] : defaultValue;
         }
 
         public bool CollectionExists(string collectionPath)
@@ -42,6 +48,11 @@ namespace ClrHeapAllocationAnalyzer.Common
         public void SetInt32(string collectionPath, string propertyName, int value)
         {
             intValues[propertyName] = value;
+        }
+
+        public void SetString(string collectionPath, string propertyName, string value)
+        {
+            stringValues[propertyName] = value;
         }
 
         public void CreateCollection(string collectionPath)

@@ -11,13 +11,14 @@
  * ---------------------------------------------------------------------------*/
 
 using System.Collections.Immutable;
+using ClrHeapAllocationAnalyzer.Common;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace ClrHeapAllocationAnalyzer.Test
 {
     [TestClass]
-    public class IgnoreTests : AllocationAnalyzerTests
+    public class IgnoreAttributeTests : AllocationAnalyzerTests
     {
         [TestMethod]
         public void AnalyzeProgram_TakesIgnoredAttributesIntoAccount()
@@ -29,20 +30,23 @@ namespace ClrHeapAllocationAnalyzer.Test
                 public void CreateString1() {
                     string str = new string('a', 5);
                 }
-
-                [System.CodeDom.Compiler.GeneratedCodeAttribute(""MyCompiler"", ""1.0.0.3"")]
-                public void CreateString2() {
-                    string str = new string('a', 5);
-                }
-
                 [System.ObsoleteAttribute]
-                public void CreateString3() {
+                public void CreateString2() {
                     string str = new string('a', 5);
                 }";
 
             var analyser = new ExplicitAllocationAnalyzer();
+            AllocationRules.Settings.IgnoredAttributes = ""; // Explicitly set to remove any default.
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.ObjectInitializerExpression));
+            Assert.AreEqual(2, info.Allocations.Count);
+
+            AllocationRules.Settings.IgnoredAttributes = "System.Runtime.CompilerServices.CompilerGeneratedAttribute";
+            info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.ObjectInitializerExpression));
             Assert.AreEqual(1, info.Allocations.Count);
+
+            AllocationRules.Settings.IgnoredAttributes = "System.Runtime.CompilerServices.CompilerGeneratedAttribute, System.ObsoleteAttribute";
+            info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.ObjectInitializerExpression));
+            Assert.AreEqual(0, info.Allocations.Count);
         }
 
         [TestMethod]
@@ -61,10 +65,20 @@ namespace ClrHeapAllocationAnalyzer.Test
                 Assert.AreEqual(expectedCount, info.Allocations.Count);
             }
 
+            AllocationRules.Settings.IgnoredFilesPatterns = ""; // Explicitly set to remove any default.
+            Check(1, "test.g.cs");
+
+            AllocationRules.Settings.IgnoredFilesPatterns = "*.g.cs";
             Check(0, "test.g.cs");
-            Check(0, "test.G.cS");
-            Check(1, "test.cs");
+
+            AllocationRules.Settings.IgnoredFilesPatterns = "*.g.cs, *.cpp";
+            Check(0, "test.g.cs");
+            Check(0, "test.cpp");
+
+            AllocationRules.Settings.IgnoredFilesPatterns = "*.?.cs";
             Check(1, "test.cpp");
+            Check(0, "test.g.cs");
+            Check(0, "test.a.cs");
         }
     }
 }

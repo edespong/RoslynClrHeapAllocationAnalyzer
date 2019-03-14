@@ -22,9 +22,23 @@ namespace ClrHeapAllocationAnalyzer.Common
     {
         private const string CollectionPath = "HeapAllocationAnalyzer";
 
+        private static readonly bool DefaultEnabled = true;
+        private static readonly string DefaultIgnoredAttributes = "System.Runtime.CompilerServices.CompilerGeneratedAttribute, System.CodeDom.Compiler.GeneratedCodeAttribute";
+        private static readonly string DefaultIgnoredFilesPatterns = "*.g.cs";
+        private static readonly bool DefaultOnlyReportOnHotPath = false;
+        private static readonly string DefaultHotPathAttributes = "Microsoft.Diagnostics.PerformanceSensitiveAttribute";
+
         private readonly IWritableSettingsStore settingsStore;
 
         private bool enabled = true;
+
+        private string ignoredAttributes;
+
+        private string ignoredFilesPatterns;
+
+        private bool onlyReportOnHotPath;
+
+        private string hotPathAttributes;
 
         private readonly IDictionary<string, DiagnosticSeverity> ruleSeverities;
 
@@ -45,6 +59,58 @@ namespace ClrHeapAllocationAnalyzer.Common
                 if (value != enabled)
                 {
                     enabled = value;
+                    OnSettingsChanged();
+                }
+            }
+        }
+
+        public string IgnoredAttributes
+        {
+            get => ignoredAttributes;
+            set
+            {
+                if (value != ignoredAttributes)
+                {
+                    ignoredAttributes = value;
+                    OnSettingsChanged();
+                }
+            }
+        }
+
+        public string IgnoredFilesPatterns
+        {
+            get => ignoredFilesPatterns;
+            set
+            {
+                if (value != ignoredFilesPatterns)
+                {
+                    ignoredFilesPatterns = value;
+                    OnSettingsChanged();
+                }
+            }
+        }
+
+        public bool OnlyReportOnHotPath
+        {
+            get => onlyReportOnHotPath;
+            set
+            {
+                if (value != onlyReportOnHotPath)
+                {
+                    onlyReportOnHotPath = value;
+                    OnSettingsChanged();
+                }
+            }
+        }
+
+        public string HotPathAttributes
+        {
+            get => hotPathAttributes;
+            set
+            {
+                if (value != hotPathAttributes)
+                {
+                    hotPathAttributes = value;
                     OnSettingsChanged();
                 }
             }
@@ -99,7 +165,11 @@ namespace ClrHeapAllocationAnalyzer.Common
         {
             try
             {
-                Enabled = settingsStore.GetBoolean(CollectionPath, "Enabled", true);
+                enabled = settingsStore.GetBoolean(CollectionPath, "Enabled", true);
+                ignoredAttributes = settingsStore.GetString(CollectionPath, "IgnoredAttributes", DefaultIgnoredAttributes);
+                ignoredFilesPatterns = settingsStore.GetString(CollectionPath, "IgnoredFilesPatterns", DefaultIgnoredFilesPatterns);
+                onlyReportOnHotPath = settingsStore.GetBoolean(CollectionPath, "OnlyReportOnHotPath", DefaultOnlyReportOnHotPath);
+                hotPathAttributes = settingsStore.GetString(CollectionPath, "HotPathAttributes", DefaultHotPathAttributes);
 
                 var ruleSeveritiesCopy = new Dictionary<string, DiagnosticSeverity>(ruleSeverities);
                 foreach (var rule in ruleSeveritiesCopy)
@@ -122,8 +192,12 @@ namespace ClrHeapAllocationAnalyzer.Common
                 {
                     settingsStore.CreateCollection(CollectionPath);
                 }
-
+                
                 settingsStore.SetBoolean(CollectionPath, "Enabled", Enabled);
+                settingsStore.SetString(CollectionPath, "IgnoredAttributes", IgnoredAttributes);
+                settingsStore.SetString(CollectionPath, "IgnoredFilesPatterns", IgnoredFilesPatterns);
+                settingsStore.SetBoolean(CollectionPath, "OnlyReportOnHotPath", OnlyReportOnHotPath);
+                settingsStore.SetString(CollectionPath, "HotPathAttributes", HotPathAttributes);
 
                 foreach (var rule in ruleSeverities)
                 {

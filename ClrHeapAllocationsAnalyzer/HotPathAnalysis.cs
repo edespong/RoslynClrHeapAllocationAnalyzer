@@ -24,31 +24,57 @@ namespace ClrHeapAllocationAnalyzer
         public static EnabledRules GetEnabledRules(ImmutableArray<DiagnosticDescriptor> supportedDiagnostics,
           SyntaxNodeAnalysisContext context)
         {
-            if (!ShouldAnalyze(false, context))
+            bool onlyHotPaths = AllocationRules.Settings.OnlyReportOnHotPath;
+            if (!ShouldAnalyze(AllocationRules.HotPathAttributes.Any(), onlyHotPaths, context))
             {
                 return EnabledRules.None;
             }
 
-            var allDiagnostrics = supportedDiagnostics.ToDictionary(x => x.Id, x => x);
-            return new EnabledRules(allDiagnostrics);
+            var allDiagnostics = supportedDiagnostics.ToDictionary(x => x.Id, x => x);
+            return new EnabledRules(allDiagnostics);
         }
 
         private static bool IsHotPathAttribute(AttributeData attribute)
         {
-            return attribute.AttributeClass.ContainingNamespace.ToString() == "Microsoft.Diagnostics" &&
-                attribute.AttributeClass.Name == "PerformanceSensitiveAttribute";
+            return AllocationRules.HotPathAttributes.Contains(
+                (attribute.AttributeClass.ContainingNamespace.ToString(), attribute.AttributeClass.Name));
         }
 
         /// <summary>
         /// Based on the hot path settings and the current context, should an
         /// analysis be performed?
         /// </summary>
-        private static bool ShouldAnalyze(bool onlyReportOnHotPath,
+        private static bool ShouldAnalyze(bool isHotPathAttributesDefined, bool onlyReportOnHotPath,
             SyntaxNodeAnalysisContext context)
         {
-            IEnumerable<AttributeData> hotPathAttributes =
-                context.ContainingSymbol.GetAttributes().Where(IsHotPathAttribute);
-            if (hotPathAttributes.Any())
+            if (onlyReportOnHotPath && !isHotPathAttributesDefined)
+            {
+                // Inform the user that there might be an issue with the
+                // configuration.
+                var descriptor = new DiagnosticDescriptor("HAA0000", "Settings issue",
+                    "The heap allocation analyzer settings are set to only report on hot paths, " +
+                    "but no attribute has been defined.", "Performance", DiagnosticSeverity.Info, true);
+                context.ReportDiagnostic(Diagnostic.Create(descriptor, Location.None));
+                return false;
+            }
+
+            if (!isHotPathAttributesDefined)
+            {
+                // No attribute defined in settings, report on everything.
+                return true;
+            }
+
+            ImmutableArray<AttributeData> symbolAttributes =
+                context.ContainingSymbol.GetAttributes();
+            if (symbolAttributes.Any(IsHotPathAttribute))
+            {
+                // Always perform analysis regardless of setting when a hot path
+                // is found.
+                return true;
+            }
+
+            ImmutableArray<AttributeData> typeAttributes = context.ContainingSymbol.ContainingType.GetAttributes();
+            if (typeAttributes.Any(IsHotPathAttribute))
             {
                 // Always perform analysis regardless of setting when a hot path
                 // is found.
