@@ -87,7 +87,7 @@ public struct MyStruct
     {
         var @struct = new MyStruct();
         @struct.ProcessFunc(fooObjCall); // implicit, so Allocation
-        @struct.ProcessFunc(new Func<object, string>(fooObjCall)); // Explicit, so NO Allocation
+        @struct.ProcessFunc(new Func<object, string>(fooObjCall)); // Explicit, so just warn for boxing
     }
 
     public void ProcessFunc(Func<object, string> func)
@@ -103,13 +103,15 @@ public struct MyStruct
             var analyser = new TypeConversionAllocationAnalyzer();
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.Argument));
 
-            Assert.AreEqual(3, info.Allocations.Count);
+            Assert.AreEqual(4, info.Allocations.Count);
             // Diagnostic: (8,28): warning HeapAnalyzerMethodGroupAllocationRule: This will allocate a delegate instance
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 8, character: 28);
             // Diagnostic: (27,29): warning HeapAnalyzerMethodGroupAllocationRule: This will allocate a delegate instance
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 27, character: 29);
             // Diagnostic: (27,29): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 27, character: 29);
+            // Diagnostic: (27,29): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 28, character: 54);
         }
 
         [TestMethod]
@@ -227,7 +229,7 @@ public struct MyStruct
     {
         Func<object, string> temp = null;
         var result1 = temp ?? fooObjCall; // implicit, so Allocation
-        var result2 = temp ?? new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        var result2 = temp ?? new Func<object, string>(fooObjCall); // Explicit, so just warn for boxing
     }
 
     private string fooObjCall(object obj)
@@ -239,7 +241,7 @@ public struct MyStruct
             var analyser = new TypeConversionAllocationAnalyzer();
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.CoalesceExpression, SyntaxKind.AsExpression));
 
-            Assert.AreEqual(3, info.Allocations.Count);
+            Assert.AreEqual(4, info.Allocations.Count);
 
             // Diagnostic: (8,31): warning HeapAnalyzerMethodGroupAllocationRule: This will allocate a delegate instance
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 8, character: 31);
@@ -247,6 +249,8 @@ public struct MyStruct
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 23, character: 31);
             // Diagnostic: (23,31): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 23, character: 31);
+            // Diagnostic: (23,31): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 24, character: 56);
         }
 
         [TestMethod]
@@ -308,7 +312,7 @@ public struct MyStruct
     public void Testing()
     {
         Func<object, string> func2 = fooObjCall; // implicit, so Allocation
-        Func<object, string> func1 = new Func<object, string>(fooObjCall); // Explicit, so NO Allocation
+        Func<object, string> func1 = new Func<object, string>(fooObjCall); // Explicit, but warn for boxing
     }
 
     private string fooObjCall(object obj)
@@ -320,7 +324,7 @@ public struct MyStruct
             var analyser = new TypeConversionAllocationAnalyzer();
             var info = ProcessCode(analyser, sampleProgram, ImmutableArray.Create(SyntaxKind.CoalesceExpression, SyntaxKind.EqualsValueClause));
 
-            Assert.AreEqual(3, info.Allocations.Count);
+            Assert.AreEqual(4, info.Allocations.Count);
 
             // Diagnostic: (7,38): warning HeapAnalyzerMethodGroupAllocationRule: This will allocate a delegate instance
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 7, character: 38);
@@ -328,8 +332,8 @@ public struct MyStruct
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 21, character: 38);
             // Diagnostic: (21,38): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 21, character: 38);
-            // TODO this is a false positive
             // Diagnostic: (22,63): warning HeapAnalyzerDelegateOnStructRule: Struct instance method being used for delegate creation, this will result in a boxing instruction
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 22, character: 63);
         }
 
         [TestMethod]
@@ -581,6 +585,46 @@ var f2 = (object)""5""; // NO Allocation
             var info = ProcessCode(analyzer, snippet, ImmutableArray.Create(
                 SyntaxKind.ArrowExpressionClause));
             AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.MethodGroupAllocationRule.Id, line: 7, character: 40);
+        }
+
+        [TestMethod]
+        public void TypeConversionAllocation_WarnForExplicitDelegateOnStruct()
+        {
+            const string snippet = @"
+                using System;
+                public struct MyStruct {
+                    public void Testing() {
+                    var @struct = new MyStruct();
+                    @struct.ProcessFunc(new Func<object, string>(FooObjCall));
+               }
+
+                public void ProcessFunc(Func<object, string> func) { }
+
+                private string FooObjCall(object obj) {
+                    return obj.ToString();
+                }
+            }";
+
+            var analyzer = new TypeConversionAllocationAnalyzer();
+            var info = ProcessCode(analyzer, snippet, ImmutableArray.Create(
+                SyntaxKind.Argument));
+            Assert.AreEqual(1, info.Allocations.Count);
+            AssertEx.ContainsDiagnostic(info.Allocations, id: AllocationRules.DelegateOnStructInstanceRule.Id, line: 6, character: 66);
+        }
+
+        [TestMethod]
+        public void TypeConversionAllocation_DoNotWarnForForwardingActionOnStruct()
+        {
+            const string snippet = @"
+                using System;
+                struct Foo {
+                    void Perform(Action process) { Forward(process); }
+                    void Forward(Action process) { process(); }
+                }";
+
+            var analyzer = new TypeConversionAllocationAnalyzer();
+            var info = ProcessCode(analyzer, snippet, ImmutableArray.Create(SyntaxKind.Argument));
+            Assert.AreEqual(0, info.Allocations.Count);
         }
 
         [TestMethod]

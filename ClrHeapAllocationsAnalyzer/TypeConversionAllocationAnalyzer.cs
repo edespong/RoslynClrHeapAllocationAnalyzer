@@ -274,60 +274,60 @@ namespace ClrHeapAllocationAnalyzer
 
         private static void CheckDelegateCreation(EnabledRules rules, SyntaxNode node, TypeInfo typeInfo, SemanticModel semanticModel, bool isAssignmentToReadonly, Action<Diagnostic> reportDiagnostic, Location location, string filePath, CancellationToken cancellationToken)
         {
-            // special case: method groups
-            if (typeInfo.ConvertedType?.TypeKind == TypeKind.Delegate)
+            if (typeInfo.ConvertedType?.TypeKind != TypeKind.Delegate)
             {
-                // new Action<Foo>(MethodGroup); should skip this one
-                var insideObjectCreation = node?.Parent?.Parent?.Parent?.Kind() == SyntaxKind.ObjectCreationExpression;
-                if (node is ParenthesizedLambdaExpressionSyntax || node is SimpleLambdaExpressionSyntax ||
-                    node is AnonymousMethodExpressionSyntax || node is ObjectCreationExpressionSyntax ||
-                    insideObjectCreation)
-                {
-                    // skip this, because it's intended.
-                }
-                else
-                {
-                    if (rules.IsEnabled(AllocationRules.MethodGroupAllocationRule.Id) && node.IsKind(SyntaxKind.IdentifierName))
-                    {
-                        if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol)
-                        {
-                            reportDiagnostic(Diagnostic.Create(rules.Get(AllocationRules.MethodGroupAllocationRule.Id), location, EmptyMessageArgs));
-                        }
-                    }
-                    else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
-                    {
-                        var memberAccess = node as MemberAccessExpressionSyntax;
-                        if (semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken).Symbol is IMethodSymbol)
-                        {
-                            if (isAssignmentToReadonly && rules.TryGet(AllocationRules.ReadonlyMethodGroupAllocationRule.Id, out var readonlyMethodGroupAllocationRule))
-                            {
-                                reportDiagnostic(Diagnostic.Create(readonlyMethodGroupAllocationRule, location, EmptyMessageArgs));
-                            }
-                            else if (rules.TryGet(AllocationRules.MethodGroupAllocationRule.Id, out var methodGroupAllocationRule))
-                            {
-                                reportDiagnostic(Diagnostic.Create(methodGroupAllocationRule, location, EmptyMessageArgs));
-                            }
-                        }
-                    }
-                    else if (node is ArrowExpressionClauseSyntax)
-                    {
-                        if (rules.TryGet(AllocationRules.MethodGroupAllocationRule.Id, out var methodGroupAllocationRule))
-                        {
-                            var arrowClause = node as ArrowExpressionClauseSyntax;
-                            if (semanticModel.GetSymbolInfo(arrowClause.Expression, cancellationToken).Symbol is IMethodSymbol)
-                            {
-                                reportDiagnostic(Diagnostic.Create(methodGroupAllocationRule, location, EmptyMessageArgs));
-                            }
-                        }
-                    }
-                }
+                return;
+            }
 
-                if (rules.TryGet(AllocationRules.DelegateOnStructInstanceRule.Id, out var delegateOnStructRule))
+            if (rules.TryGet(AllocationRules.DelegateOnStructInstanceRule.Id, out var delegateOnStructRule))
+            {
+                var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
+                if (symbolInfo?.ContainingType?.IsValueType == true && symbolInfo.GetType().Name == "SourceMemberMethodSymbol")
                 {
-                    var symbolInfo = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
-                    if (symbolInfo?.ContainingType?.IsValueType == true && !insideObjectCreation)
+                    reportDiagnostic(Diagnostic.Create(delegateOnStructRule, location, EmptyMessageArgs));
+                }
+            }
+
+            // new Action<Foo>(MethodGroup); should skip this one
+            var insideObjectCreation = node?.Parent?.Parent?.Parent?.Kind() == SyntaxKind.ObjectCreationExpression;
+            if (node is ParenthesizedLambdaExpressionSyntax || node is SimpleLambdaExpressionSyntax ||
+                node is AnonymousMethodExpressionSyntax || node is ObjectCreationExpressionSyntax ||
+                insideObjectCreation)
+            {
+                // skip this, because it's intended.
+                return;
+            }
+            
+            if (rules.IsEnabled(AllocationRules.MethodGroupAllocationRule.Id) && node.IsKind(SyntaxKind.IdentifierName))
+            {
+                if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol)
+                {
+                    reportDiagnostic(Diagnostic.Create(rules.Get(AllocationRules.MethodGroupAllocationRule.Id), location, EmptyMessageArgs));
+                }
+            }
+            else if (node.IsKind(SyntaxKind.SimpleMemberAccessExpression))
+            {
+                var memberAccess = node as MemberAccessExpressionSyntax;
+                if (semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken).Symbol is IMethodSymbol)
+                {
+                    if (isAssignmentToReadonly && rules.TryGet(AllocationRules.ReadonlyMethodGroupAllocationRule.Id, out var readonlyMethodGroupAllocationRule))
                     {
-                        reportDiagnostic(Diagnostic.Create(delegateOnStructRule, location, EmptyMessageArgs));
+                        reportDiagnostic(Diagnostic.Create(readonlyMethodGroupAllocationRule, location, EmptyMessageArgs));
+                    }
+                    else if (rules.TryGet(AllocationRules.MethodGroupAllocationRule.Id, out var methodGroupAllocationRule))
+                    {
+                        reportDiagnostic(Diagnostic.Create(methodGroupAllocationRule, location, EmptyMessageArgs));
+                    }
+                }
+            }
+            else if (node is ArrowExpressionClauseSyntax)
+            {
+                if (rules.TryGet(AllocationRules.MethodGroupAllocationRule.Id, out var methodGroupAllocationRule))
+                {
+                    var arrowClause = node as ArrowExpressionClauseSyntax;
+                    if (semanticModel.GetSymbolInfo(arrowClause.Expression, cancellationToken).Symbol is IMethodSymbol)
+                    {
+                        reportDiagnostic(Diagnostic.Create(methodGroupAllocationRule, location, EmptyMessageArgs));
                     }
                 }
             }
