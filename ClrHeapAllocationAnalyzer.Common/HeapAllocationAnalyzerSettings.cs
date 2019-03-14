@@ -16,7 +16,8 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 
-namespace ClrHeapAllocationAnalyzer.Common {
+namespace ClrHeapAllocationAnalyzer.Common
+{
     public class HeapAllocationAnalyzerSettings : IHeapAllocationAnalyzerSettings
     {
         private const string CollectionPath = "HeapAllocationAnalyzer";
@@ -39,7 +40,8 @@ namespace ClrHeapAllocationAnalyzer.Common {
         public bool Enabled
         {
             get => enabled;
-            set {
+            set
+            {
                 if (value != enabled)
                 {
                     enabled = value;

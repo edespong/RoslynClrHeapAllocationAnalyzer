@@ -12,15 +12,18 @@
 
 using Microsoft.CodeAnalysis;
 
-namespace ClrHeapAllocationAnalyzer.Common {
-    public struct AllocationRuleDescription {
+namespace ClrHeapAllocationAnalyzer.Common
+{
+    public struct AllocationRuleDescription
+    {
         public string Id { get; }
         public string Title { get; }
         public string MessageFormat { get; }
         public DiagnosticSeverity Severity { get; }
         public string HelpLinkUri { get; }
 
-        public AllocationRuleDescription(string id, string title, string messageFormat, DiagnosticSeverity severity) {
+        public AllocationRuleDescription(string id, string title, string messageFormat, DiagnosticSeverity severity)
+        {
             Id = id;
             Title = title;
             MessageFormat = messageFormat;
@@ -28,7 +31,8 @@ namespace ClrHeapAllocationAnalyzer.Common {
             HelpLinkUri = null;
         }
 
-        public AllocationRuleDescription(string id, string title, string messageFormat, DiagnosticSeverity severity, string helpLinkUri) {
+        public AllocationRuleDescription(string id, string title, string messageFormat, DiagnosticSeverity severity, string helpLinkUri)
+        {
             Id = id;
             Title = title;
             MessageFormat = messageFormat;
@@ -36,7 +40,8 @@ namespace ClrHeapAllocationAnalyzer.Common {
             HelpLinkUri = helpLinkUri;
         }
 
-        public AllocationRuleDescription WithSeverity(DiagnosticSeverity severity) {
+        public AllocationRuleDescription WithSeverity(DiagnosticSeverity severity)
+        {
             return new AllocationRuleDescription(Id, Title, MessageFormat, severity);
         }
     }

@@ -20,7 +20,8 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Settings;
 
-namespace ClrHeapAllocationAnalyzer.Vsix {
+namespace ClrHeapAllocationAnalyzer.Vsix
+{
     /// <summary>
     /// This is the class that implements the package exposed by this assembly.
     /// </summary>
@@ -47,7 +48,7 @@ namespace ClrHeapAllocationAnalyzer.Vsix {
             base.Initialize();
             SettingsManager settingsManager = new ShellSettingsManager(ServiceProvider.GlobalProvider);
             WritableSettingsStore settingsStore = settingsManager.GetWritableSettingsStore(SettingsScope.UserSettings);
-            AllocationRules.Settings = new HeapAllocationAnalyzerSettings(new InMemorySettingsStore()/*SettingsStoreWrapper(settingsStore)*/,AllocationRules.DefaultValues());
+            AllocationRules.Settings = new HeapAllocationAnalyzerSettings(new InMemorySettingsStore()/*SettingsStoreWrapper(settingsStore)*/, AllocationRules.DefaultValues());
         }
 
         private class InMemorySettingsStore : IWritableSettingsStore

@@ -409,7 +409,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_ArgumentWithImplicitStringCastOperator() {
+        public void TypeConversionAllocation_ArgumentWithImplicitStringCastOperator()
+        {
             const string programWithoutImplicitCastOperator = @"
                 public struct AStruct
                 {
@@ -446,14 +447,15 @@ var f2 = (object)""5""; // NO Allocation
 
             var info0 = ProcessCode(analyzer, programWithoutImplicitCastOperator, ImmutableArray.Create(SyntaxKind.Argument));
             AssertEx.ContainsDiagnostic(info0.Allocations, id: AllocationRules.ValueTypeToReferenceTypeConversionRule.Id, line: 6, character: 50);
-            
+
             var info1 = ProcessCode(analyzer, programWithImplicitCastOperator, ImmutableArray.Create(SyntaxKind.Argument));
             Assert.AreEqual(0, info1.Allocations.Count);
         }
 
 
         [TestMethod]
-        public void TypeConversionAllocation_YieldReturnImplicitStringCastOperator() {
+        public void TypeConversionAllocation_YieldReturnImplicitStringCastOperator()
+        {
             const string programWithoutImplicitCastOperator = @"
                 public struct AStruct
                 {
@@ -489,7 +491,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_InterpolatedStringWithInt_BoxingWarning() {
+        public void TypeConversionAllocation_InterpolatedStringWithInt_BoxingWarning()
+        {
             var sampleProgram = @"string s = $""{1}"";";
 
             var analyser = new TypeConversionAllocationAnalyzer();
@@ -500,7 +503,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_InterpolatedStringWithString_NoWarning() {
+        public void TypeConversionAllocation_InterpolatedStringWithString_NoWarning()
+        {
             var sampleProgram = @"string s = $""{1.ToString()}"";";
 
             var analyser = new TypeConversionAllocationAnalyzer();
@@ -529,7 +533,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithBoxing() {
+        public void TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithBoxing()
+        {
             const string snippet = @"
                 class Program
                 {
@@ -544,7 +549,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithoutBoxing() {
+        public void TypeConversionAllocation_ExpressionBodiedPropertyBoxing_WithoutBoxing()
+        {
             const string snippet = @"
                 class Program
                 {
@@ -559,7 +565,8 @@ var f2 = (object)""5""; // NO Allocation
         }
 
         [TestMethod]
-        public void TypeConversionAllocation_ExpressionBodiedPropertyDelegate() {
+        public void TypeConversionAllocation_ExpressionBodiedPropertyDelegate()
+        {
             const string snippet = @"
                 using System;
                 class Program
@@ -579,7 +586,8 @@ var f2 = (object)""5""; // NO Allocation
         [TestMethod]
         [Description("Tests that an explicit delegate creation does not trigger HAA0603. " +
             "It should be handled by HAA0502.")]
-        public void TypeConversionAllocation_ExpressionBodiedPropertyExplicitDelegate_NoWarning() {
+        public void TypeConversionAllocation_ExpressionBodiedPropertyExplicitDelegate_NoWarning()
+        {
             const string snippet = @"
                 using System;
                 class Program

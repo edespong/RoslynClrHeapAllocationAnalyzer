@@ -10,18 +10,18 @@
  *  root.
  * ---------------------------------------------------------------------------*/
 
+using System;
+using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
+using System.Threading;
+using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
 namespace ClrHeapAllocationAnalyzer
 {
-    using System;
-    using System.Collections.Immutable;
-    using System.Runtime.CompilerServices;
-    using System.Threading;
-    using ClrHeapAllocationAnalyzer.Common;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class CallSiteImplicitAllocationAnalyzer : AllocationAnalyzer
     {

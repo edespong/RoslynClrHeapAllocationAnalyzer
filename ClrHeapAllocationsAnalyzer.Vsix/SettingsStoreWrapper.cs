@@ -13,8 +13,10 @@
 using ClrHeapAllocationAnalyzer.Common;
 using Microsoft.VisualStudio.Settings;
 
-namespace ClrHeapAllocationAnalyzer.Vsix {
-    internal class SettingsStoreWrapper : IWritableSettingsStore {
+namespace ClrHeapAllocationAnalyzer.Vsix
+{
+    internal class SettingsStoreWrapper : IWritableSettingsStore
+    {
         private readonly WritableSettingsStore settingsStore;
 
         public SettingsStoreWrapper(WritableSettingsStore store)
@@ -28,7 +30,7 @@ namespace ClrHeapAllocationAnalyzer.Vsix {
         }
 
         public int GetInt32(string collectionPath, string propertyName, int defaultValue)
-            {
+        {
             return settingsStore.GetInt32(collectionPath, propertyName, defaultValue);
         }
 

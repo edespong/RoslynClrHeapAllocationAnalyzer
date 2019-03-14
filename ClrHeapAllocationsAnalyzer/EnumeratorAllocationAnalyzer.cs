@@ -10,17 +10,17 @@
  *  root.
  * ---------------------------------------------------------------------------*/
 
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
 namespace ClrHeapAllocationAnalyzer
 {
-    using System;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using ClrHeapAllocationAnalyzer.Common;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class EnumeratorAllocationAnalyzer : AllocationAnalyzer
     {
@@ -32,7 +32,7 @@ namespace ClrHeapAllocationAnalyzer
         private static readonly object[] EmptyMessageArgs = { };
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context, EnabledRules rules)
-        {  
+        {
             if (!rules.TryGet(AllocationRules.ReferenceTypeEnumeratorRule.Id, out DiagnosticDescriptor rule))
             {
                 return;

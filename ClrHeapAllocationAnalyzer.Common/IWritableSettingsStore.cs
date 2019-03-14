@@ -10,7 +10,8 @@
  *  root.
  * ---------------------------------------------------------------------------*/
 
-namespace ClrHeapAllocationAnalyzer.Common {
+namespace ClrHeapAllocationAnalyzer.Common
+{
     /// <summary>
     /// Exposes methods for getting and setting settings values.
     ///

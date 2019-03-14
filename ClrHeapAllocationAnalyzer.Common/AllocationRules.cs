@@ -14,7 +14,8 @@ using System;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace ClrHeapAllocationAnalyzer.Common {
+namespace ClrHeapAllocationAnalyzer.Common
+{
     public static partial class AllocationRules
     {
         private static readonly HashSet<ValueTuple<string, string>> IgnoredAttributes = new HashSet<(string, string)>
@@ -95,7 +96,7 @@ namespace ClrHeapAllocationAnalyzer.Common {
             AllocationRuleDescription d = Descriptions[ruleId];
             DiagnosticSeverity severity = d.Severity;
             severity = Settings.GetSeverity(d);
-            
+
             bool isEnabled = severity != DiagnosticSeverity.Hidden;
             return new DiagnosticDescriptor(d.Id, d.Title, d.MessageFormat, "Performance", severity, isEnabled, helpLinkUri: d.HelpLinkUri);
         }
@@ -113,8 +114,10 @@ namespace ClrHeapAllocationAnalyzer.Common {
             }
 
             Dictionary<string, DiagnosticDescriptor> result = null;
-            foreach (var ruleId in ruleIds) {
-                if (IsEnabled(ruleId)) {
+            foreach (var ruleId in ruleIds)
+            {
+                if (IsEnabled(ruleId))
+                {
                     if (result == null)
                     {
                         result = new Dictionary<string, DiagnosticDescriptor>();
@@ -127,8 +130,10 @@ namespace ClrHeapAllocationAnalyzer.Common {
             return result != null ? new EnabledRules(result) : EnabledRules.None;
         }
 
-        public static bool IsEnabled(string ruleId) {
-            if (!Descriptions.ContainsKey(ruleId)) {
+        public static bool IsEnabled(string ruleId)
+        {
+            if (!Descriptions.ContainsKey(ruleId))
+            {
                 throw new ArgumentException($"Cannot find description for rule {ruleId}", nameof(ruleId));
             }
 
@@ -143,9 +148,11 @@ namespace ClrHeapAllocationAnalyzer.Common {
         private static void LoadSeverities()
         {
             var descriptionsCopy = new Dictionary<string, AllocationRuleDescription>(Descriptions);
-            foreach (var d in descriptionsCopy) {
+            foreach (var d in descriptionsCopy)
+            {
                 DiagnosticSeverity severity = Settings.GetSeverity(d.Key, d.Value.Severity);
-                if (Descriptions[d.Key].Severity != severity) {
+                if (Descriptions[d.Key].Severity != severity)
+                {
                     Descriptions[d.Key] = Descriptions[d.Key].WithSeverity(severity);
                 }
             }

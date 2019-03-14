@@ -13,7 +13,8 @@
 using System;
 using Microsoft.CodeAnalysis;
 
-namespace ClrHeapAllocationAnalyzer.Common {
+namespace ClrHeapAllocationAnalyzer.Common
+{
     public interface IHeapAllocationAnalyzerSettings
     {
         event EventHandler SettingsChanged;

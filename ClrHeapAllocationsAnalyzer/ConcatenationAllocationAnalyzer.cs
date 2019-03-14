@@ -10,16 +10,17 @@
  *  root.
  * ---------------------------------------------------------------------------*/
 
-namespace ClrHeapAllocationAnalyzer {
-    using System;
-    using System.Collections.Immutable;
-    using System.Linq;
-    using ClrHeapAllocationAnalyzer.Common;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
+namespace ClrHeapAllocationAnalyzer
+{
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class ConcatenationAllocationAnalyzer : AllocationAnalyzer
     {
@@ -43,13 +44,16 @@ namespace ClrHeapAllocationAnalyzer {
             var binaryExpressions = node.DescendantNodesAndSelf().OfType<BinaryExpressionSyntax>().Reverse(); // need inner most expressions
 
             int stringConcatenationCount = 0;
-            foreach (var binaryExpression in binaryExpressions) {
-                if (binaryExpression.Left == null || binaryExpression.Right == null) {
+            foreach (var binaryExpression in binaryExpressions)
+            {
+                if (binaryExpression.Left == null || binaryExpression.Right == null)
+                {
                     continue;
                 }
 
                 bool isConstant = semanticModel.GetConstantValue(binaryExpression, cancellationToken).HasValue;
-                if (isConstant) {
+                if (isConstant)
+                {
                     continue;
                 }
                 // TODO: TryGetEnabled()
@@ -81,15 +85,18 @@ namespace ClrHeapAllocationAnalyzer {
             }
         }
 
-        private static void CheckTypeConversion(DiagnosticDescriptor rule, TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, Location location, string filePath) {
-            bool IsOptimizedValueType(ITypeSymbol type) {
+        private static void CheckTypeConversion(DiagnosticDescriptor rule, TypeInfo typeInfo, Conversion conversionInfo, Action<Diagnostic> reportDiagnostic, Location location, string filePath)
+        {
+            bool IsOptimizedValueType(ITypeSymbol type)
+            {
                 return type.SpecialType == SpecialType.System_Boolean ||
                        type.SpecialType == SpecialType.System_Char ||
                        type.SpecialType == SpecialType.System_IntPtr ||
                        type.SpecialType == SpecialType.System_UIntPtr;
             }
 
-            if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type)) {
+            if (conversionInfo.IsBoxing && !IsOptimizedValueType(typeInfo.Type))
+            {
                 reportDiagnostic(Diagnostic.Create(rule, location, new[] { typeInfo.Type.ToDisplayString() }));
             }
         }

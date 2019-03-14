@@ -10,18 +10,17 @@
  *  root.
  * ---------------------------------------------------------------------------*/
 
+using System;
+using System.Collections.Immutable;
+using System.Threading;
+using ClrHeapAllocationAnalyzer.Common;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+
 namespace ClrHeapAllocationAnalyzer
 {
-    using System;
-    using System.Collections.Immutable;
-    using System.Threading;
-    using ClrHeapAllocationAnalyzer.Common;
-    using Microsoft.CodeAnalysis;
-    using Microsoft.CodeAnalysis.CSharp;
-    using Microsoft.CodeAnalysis.CSharp.Syntax;
-    using Microsoft.CodeAnalysis.Diagnostics;
-
-
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class TypeConversionAllocationAnalyzer : AllocationAnalyzer
     {
@@ -57,7 +56,7 @@ namespace ClrHeapAllocationAnalyzer
             var cancellationToken = context.CancellationToken;
             Action<Diagnostic> reportDiagnostic = context.ReportDiagnostic;
             string filePath = node.SyntaxTree.FilePath;
-            bool assignedToReadonlyFieldOrProperty = 
+            bool assignedToReadonlyFieldOrProperty =
                 (context.ContainingSymbol as IFieldSymbol)?.IsReadOnly == true ||
                 (context.ContainingSymbol as IPropertySymbol)?.IsReadOnly == true;
 
@@ -108,7 +107,8 @@ namespace ClrHeapAllocationAnalyzer
             }
 
             // string a = $"{1}";
-            if (isValueTypeToReferenceRuleEnabled && node is InterpolationSyntax) {
+            if (isValueTypeToReferenceRuleEnabled && node is InterpolationSyntax)
+            {
                 InterpolationCheck(valueTypeToReferenceRule, node, semanticModel, reportDiagnostic, filePath, cancellationToken);
                 return;
             }
@@ -201,7 +201,8 @@ namespace ClrHeapAllocationAnalyzer
         {
             var interpolation = node as InterpolationSyntax;
             var typeInfo = semanticModel.GetTypeInfo(interpolation.Expression, cancellationToken);
-            if (typeInfo.Type?.IsValueType == true) {
+            if (typeInfo.Type?.IsValueType == true)
+            {
                 reportDiagnostic(Diagnostic.Create(rule, interpolation.Expression.GetLocation(), EmptyMessageArgs));
             }
         }
@@ -288,7 +289,8 @@ namespace ClrHeapAllocationAnalyzer
                 {
                     if (rules.IsEnabled(AllocationRules.MethodGroupAllocationRule.Id) && node.IsKind(SyntaxKind.IdentifierName))
                     {
-                        if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol) {
+                        if (semanticModel.GetSymbolInfo(node, cancellationToken).Symbol is IMethodSymbol)
+                        {
                             reportDiagnostic(Diagnostic.Create(rules.Get(AllocationRules.MethodGroupAllocationRule.Id), location, EmptyMessageArgs));
                         }
                     }
@@ -306,7 +308,7 @@ namespace ClrHeapAllocationAnalyzer
                                 reportDiagnostic(Diagnostic.Create(methodGroupAllocationRule, location, EmptyMessageArgs));
                             }
                         }
-                    } 
+                    }
                     else if (node is ArrowExpressionClauseSyntax)
                     {
                         if (rules.TryGet(AllocationRules.MethodGroupAllocationRule.Id, out var methodGroupAllocationRule))

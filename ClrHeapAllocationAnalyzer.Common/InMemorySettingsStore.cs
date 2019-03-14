@@ -12,8 +12,10 @@
 
 using System.Collections.Generic;
 
-namespace ClrHeapAllocationAnalyzer.Common {
-    public class InMemorySettingsStore : IWritableSettingsStore {
+namespace ClrHeapAllocationAnalyzer.Common
+{
+    public class InMemorySettingsStore : IWritableSettingsStore
+    {
         private readonly IDictionary<string, bool> boolValues = new Dictionary<string, bool>();
         private readonly IDictionary<string, int> intValues = new Dictionary<string, int>();
 
@@ -23,7 +25,7 @@ namespace ClrHeapAllocationAnalyzer.Common {
         }
 
         public int GetInt32(string collectionPath, string propertyName, int defaultValue)
-            {
+        {
             return intValues.ContainsKey(propertyName) ? intValues[propertyName] : defaultValue;
         }
 

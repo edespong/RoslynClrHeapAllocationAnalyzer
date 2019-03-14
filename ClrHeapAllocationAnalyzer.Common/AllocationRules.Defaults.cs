@@ -13,8 +13,10 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
 
-namespace ClrHeapAllocationAnalyzer.Common {
-    public static partial class AllocationRules {
+namespace ClrHeapAllocationAnalyzer.Common
+{
+    public static partial class AllocationRules
+    {
         // Used by CallSiteImplicitAllocationAnalyzer
         public static readonly AllocationRuleDescription ParamsParameterRule =
             new AllocationRuleDescription("HAA0101", "Array allocation for params parameter", "This call site is calling into a function with a 'params' parameter. This results in an array allocation even if no parameter is passed in for the params parameter", DiagnosticSeverity.Warning);
@@ -75,7 +77,8 @@ namespace ClrHeapAllocationAnalyzer.Common {
         public static readonly AllocationRuleDescription ReadonlyMethodGroupAllocationRule =
             new AllocationRuleDescription("HAA0604", "Delegate allocation from a readonly method group", "This will allocate a delegate instance", DiagnosticSeverity.Info);
 
-        public static IEnumerable<AllocationRuleDescription> DefaultValues() {
+        public static IEnumerable<AllocationRuleDescription> DefaultValues()
+        {
             yield return ParamsParameterRule;
             yield return ValueTypeNonOverridenCallRule;
             yield return StringConcatenationAllocationRule;
