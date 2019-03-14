@@ -59,8 +59,8 @@ namespace ClrHeapAllocationAnalyzer
 
         private static bool HasIgnoreAttribute(SyntaxNodeAnalysisContext context)
         {
-            return context.ContainingSymbol.GetAttributes().Any(AllocationRules.IsIgnoredAttribute) ||
-                context.ContainingSymbol.ContainingType.GetAttributes().Any(AllocationRules.IsIgnoredAttribute);
+            return (context.ContainingSymbol?.GetAttributes().Any(AllocationRules.IsIgnoredAttribute) ?? false) ||
+                (context.ContainingSymbol.ContainingType?.GetAttributes().Any(AllocationRules.IsIgnoredAttribute) ?? false);
         }
     }
 }

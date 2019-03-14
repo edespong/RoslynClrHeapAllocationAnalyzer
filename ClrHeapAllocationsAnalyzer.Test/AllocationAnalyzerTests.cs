@@ -76,7 +76,7 @@ namespace ClrHeapAllocationAnalyzer.Test
             if (diagnostics.Count(d => d.Severity == DiagnosticSeverity.Error) > 0)
             {
                 var msg = "There were Errors in the sample code\n";
-                if (allowBuildErrors == false)
+                if (!allowBuildErrors)
                     Assert.Fail(msg + string.Join("\n", diagnostics));
                 else
                     Console.WriteLine(msg + string.Join("\n", diagnostics));

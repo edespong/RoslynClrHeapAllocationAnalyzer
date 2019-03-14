@@ -73,7 +73,7 @@ namespace ClrHeapAllocationAnalyzer
                 return true;
             }
 
-            ImmutableArray<AttributeData> typeAttributes = context.ContainingSymbol.ContainingType.GetAttributes();
+            ImmutableArray<AttributeData> typeAttributes = context.ContainingSymbol.ContainingType?.GetAttributes() ?? ImmutableArray<AttributeData>.Empty;
             if (typeAttributes.Any(IsHotPathAttribute))
             {
                 // Always perform analysis regardless of setting when a hot path
