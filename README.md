@@ -1,20 +1,22 @@
 Roslyn Clr Heap Allocation Analyzer
 ===================================
 
-[![Join the chat at https://gitter.im/mjsabby/RoslynClrHeapAllocationAnalyzer](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/mjsabby/RoslynClrHeapAllocationAnalyzer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+This is a fork from the original project at [Clr Heap Allocation Analyzer](https://github.com/Microsoft/RoslynClrHeapAllocationAnalyzer).
 
-Quick Video: https://www.youtube.com/watch?v=Tw-wgT-cXYU&hd=1
+This project contains a number of changes and difference in functionality
+compared to the original project, including:
+* The ability to mark methods with attributes so that only the marked methods
+  are analyzed for allocations ("hot path analysis").
+* The ability to change the severities of the different rules
+* Removal of the HeapAllocationAnalyzerEventSource
 
-Download: **https://github.com/Microsoft/RoslynClrHeapAllocationAnalyzer/releases**
+## About
 
-Roslyn based C# heap allocation diagnostic analyzer that can detect explicit and many implicit allocations like boxing, display classes a.k.a closures, implicit delegate creations, etc.
+Roslyn based C# heap allocation diagnostic analyzer that can detect explicit and
+many implicit allocations like boxing, display classes a.k.a closures, implicit
+delegate creations, etc.
 
-You can find also it on the Visual Studio Gallery, https://aka.ms/HeapAllocationAnalyzer
+# Releases
 
-If you want it use it in your build: https://www.nuget.org/packages/ClrHeapAllocationAnalyzer/
-
-![example](https://cloud.githubusercontent.com/assets/1930559/4606581/2a027d08-5225-11e4-8d4e-686c204a1267.png)
-
-## Microsoft Open Source Code of Conduct
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+There are currently no binary releases from this project. If you want to use the
+functionality, you need to download the project and build from source.

@@ -1,0 +1,12 @@
+This is a fork from the project Clr Heap Allocation Analyzer developed at
+https://github.com/Microsoft/RoslynClrHeapAllocationAnalyzer.
+
+Both the orignal project and this fork are licensed under the Apache License,
+Version 2.0.
+
+This project contains a number of changes and difference in functionality with
+regards to the original project, including:
+* The ability to mark methods with attributes so that only the marked methods
+  are analyzed for allocations ("hot path analysis").
+* The ability to change the severities of the different rules
+* Removal of the HeapAllocationAnalyzerEventSource

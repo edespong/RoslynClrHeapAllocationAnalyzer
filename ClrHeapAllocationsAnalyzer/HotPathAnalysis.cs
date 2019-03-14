@@ -1,4 +1,16 @@
-﻿using ClrHeapAllocationAnalyzer.Common;
+﻿/* -----------------------------------------------------------------------------
+ *  Licenced under the Apache License, Version 2.0. See LICENSE in the project
+ *  root for licence information.
+ *  
+ *  The content of this file has been forked from the Clr Heap Allocation
+ *  Analyzer project developed by Microsoft at 
+ *  https://github.com/Microsoft/RoslynClrHeapAllocationAnalyzer and contains,
+ *  sometimes considerable, changes in functionality by Erik Edespong. For more
+ *  specific information regarding these, see the NOTICE file in the project
+ *  root.
+ * ---------------------------------------------------------------------------*/
+
+using ClrHeapAllocationAnalyzer.Common;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Generic;

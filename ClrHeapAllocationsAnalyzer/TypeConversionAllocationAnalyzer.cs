@@ -1,4 +1,16 @@
-﻿namespace ClrHeapAllocationAnalyzer
+﻿/* -----------------------------------------------------------------------------
+ *  Licenced under the Apache License, Version 2.0. See LICENSE in the project
+ *  root for licence information.
+ *  
+ *  The content of this file has been forked from the Clr Heap Allocation
+ *  Analyzer project developed by Microsoft at 
+ *  https://github.com/Microsoft/RoslynClrHeapAllocationAnalyzer and contains,
+ *  sometimes considerable, changes in functionality by Erik Edespong. For more
+ *  specific information regarding these, see the NOTICE file in the project
+ *  root.
+ * ---------------------------------------------------------------------------*/
+
+namespace ClrHeapAllocationAnalyzer
 {
     using System;
     using System.Collections.Immutable;
@@ -75,7 +87,7 @@
 
             // object a = x ?? 0;
             // var a = 10 as object;
-            if (isValueTypeToReferenceRuleEnabled && node is BinaryExpressionSyntax) // TODO(erik): Should this really be here?????
+            if (node is BinaryExpressionSyntax)
             {
                 BinaryExpressionCheck(rules, node, semanticModel, assignedToReadonlyFieldOrProperty, reportDiagnostic, filePath, cancellationToken);
                 return;
